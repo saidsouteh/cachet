@@ -1,0 +1,78 @@
+apiVersion: apps/v1
+kind: Deployment     
+metadata:
+  labels:
+    component: cachet           
+  name: cachet
+  namespace: default    
+spec:                
+  replicas: 1       
+  selector:
+    matchLabels:
+      component: cachet
+  template:           
+    metadata:                                                                                           
+      creationTimestamp: null
+      labels:
+        component: cachet                            
+    spec:
+      containers:
+      - env:
+        - name: APP_KEY
+          value : base64:zkC1AQuZdj8xqqIi4IIWkKrlPiw8QlfaRQAjxm9ZN8c=
+          #valueFrom:
+          #  secretKeyRef:
+          #    name: cachet-secret
+          #    key: APP_KEY
+        - name: APP_LOG
+          value: errorlog
+        - name: APP_DEBUG
+          value: "false"
+        - name: DB_DRIVER
+          valueFrom:
+            secretKeyRef:
+              name: cachet-secret
+              key: DB_DRIVER
+        - name: DB_HOST
+          valueFrom:
+            secretKeyRef:
+              name: cachet-secret
+              key: DB_HOST
+        - name: DB_DATABASE
+          valueFrom:
+            secretKeyRef:
+              name: cachet-secret
+              key: DB_DATABASE
+        - name: DB_USERNAME
+          valueFrom:
+            secretKeyRef:
+              name: cachet-secret
+              key: DB_USERNAME
+        - name: DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: cachet-secret
+              key: DB_PASSWORD
+        - name: DB_PORT
+          value: "5432"
+        - name: DB_PREFIX
+          value: chq_
+        - name: DEBUG
+          value: "false"
+        - name: SESSION_DRIVER
+          value: file
+        - name: CACHE_DRIVER
+          value: database
+        - name: QUEUE_DRIVER
+          value: database
+        image: cachethq/docker:2.3.15
+        name: cachet
+        ports:
+        - containerPort: 8000
+        resources: {}
+      initContainers:
+      - name: init-postgres
+        image: busybox
+        command: ['sh', '-c', 'until nc -z postgres 5432; do echo waiting for postgres; sleep 2; done;']
+      restartPolicy: Always
+status: {}
